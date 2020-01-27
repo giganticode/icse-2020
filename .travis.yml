@@ -1,0 +1,7 @@
+services:
+  - docker
+
+before_install:
+  - docker build . -t hlib/open-vocab-code-nlm
+  - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  - docker push hlib/open-vocab-code-nlm

@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM hlib/nlm-base
 
 WORKDIR /usr/src/app
 
