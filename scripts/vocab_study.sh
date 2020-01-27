@@ -30,7 +30,7 @@ rel_oov() {
   local _limit="$3"
   local _total_vocab="$4"
 
-  oov_abs=$(echo "$(comm -13 <(cat "$_vocab_file" | head -$_limit | awk '{print $2}') <(cat "$_vocab_file_test" | awk '{print $2}')))" | wc -l)
+  oov_abs=$(echo "$(comm -13 <(cat "$_vocab_file" | head -$_limit | awk '{print $2}' | sort) <(cat "$_vocab_file_test" | awk '{print $2}' | sort)))" | wc -l)
   echo $(( 100 * oov_abs / _total_vocab ))
 }
 
