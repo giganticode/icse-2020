@@ -1,3 +1,5 @@
+echo "Running evaluation of java-bpe-10k-large model ..."
+
 BASE_DIR="/usr/src/app/"
 #BASE_DIR="/home/hlib/dev/ecse-2020-artefacts/docker/"
 # Directory that contains train/validation/test data etc.
