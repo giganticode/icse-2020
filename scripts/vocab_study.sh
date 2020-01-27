@@ -38,7 +38,7 @@ print_latest_calculated_vocab () {
 FULL_STRING=""
 
 format_res () {
-    echo -e "\n$1" | awk -F'\t' '{print $1"   Vocab size: "$2"      Corpus size: "$3"    Freqs: "$4}'
+    echo -e "$1" | awk -F'\t' '{print "\n"$1"   Vocab size: "$2"      Corpus size: "$3"    Freqs: "$4}'
 }
 
 echo "Vocabulary study: evaluating different vocabulary choices"
