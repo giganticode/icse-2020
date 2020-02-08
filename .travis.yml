@@ -10,5 +10,5 @@ before_install:
 install:
   - docker pull hlib/open-vocab-code-nlm:v2
 script:
-  - docker run -it hlib/open-vocab-code-nlm "scripts/vocab_study.sh"
-  - docker run -it hlib/open-vocab-code-nlm "scripts/nlm.sh"
+  - docker run -it hlib/open-vocab-code-nlm:v2 "scripts/vocab_study.sh"
+  - docker run -it hlib/open-vocab-code-nlm:v2 "scripts/nlm.sh"
