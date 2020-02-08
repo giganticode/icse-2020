@@ -1,6 +1,11 @@
 #!/bin/bash
 
-trap 'if [[ "$BASH_COMMAND" =~ ^codeprep* ]]; then echo -e "\nRunning:          $BASH_COMMAND"; fi' DEBUG
+set -e
+
+############# Defining constants and paths
+
+SCRIPTPATH="$( cd "$(dirname "$0")" || exit ; pwd -P )"
+RESULT_FILE="$SCRIPTPATH/vocab_stats.csv"
 
 if [ -z "$1" ]
 then
@@ -14,6 +19,17 @@ PATH_TO_TEST_DATASET="$PATH_TO_TRAIN_AND_TEST/test"
 
 CPREP_VERSION=$(codeprep --version | grep -o "[^ ]*$")
 PATH_TO_VOCABS="/root/.config/codeprep/$CPREP_VERSION/vocab/"
+EXAMPLE_FILE="$SCRIPTPATH/example.txt"
+
+VOCAB_DESC="Vocab size"
+CORPUS_SIZE_DESC="Corpus size"
+OOV_DESC="% OOV in test set (no/200k/100k/75k/50k/25k)"
+OOV_SHORT_DESC="% OOV (no/200k/100k/75k/50k/25k)"
+FREQS_DESC="% Frequencies (>1000/101-1000/11-100/2-10/1)"
+
+DESC_PREFIX="--->"
+
+##############  Calculations
 
 rel_freq() {
   local _vocab_file="$1"
@@ -21,7 +37,7 @@ rel_freq() {
   local _total_vocab="$3"
 
   Q=$(cat "$_vocab_file" | awk '{print $2}' | grep "$_regex" | wc -l)
-  echo $(( 100 * Q / _total_vocab ))
+  echo "scale=1; 100 * $Q / $_total_vocab" | bc
 }
 
 rel_oov() {
@@ -31,8 +47,30 @@ rel_oov() {
   local _total_vocab="$4"
 
   oov_abs=$(echo "$(comm -13 <(cat "$_vocab_file" | head -$_limit | awk '{print $2}' | sort) <(cat "$_vocab_file_test" | awk '{print $2}' | sort)))" | wc -l)
-  echo $(( 100 * oov_abs / _total_vocab ))
+  echo "scale=2; 100 * $oov_abs / $_total_vocab" | bc
 }
+
+run_option() {
+  OPTION_NUMBER=$(echo "$1" | awk -F';' '{print $1}')
+  DESC=$(echo "$1" | awk -F';' '{print $2}')
+  COMMAND=$(echo "$1" | awk -F';' '{print $3}')
+
+  if [ '-' == "$COMMAND" ]; then return; fi
+
+  echo "-------> $OPTION_NUMBER $DESC"
+  echo "$ $COMMAND -p $PATH_TO_DATASET --calc-vocab"
+  $COMMAND -p "$PATH_TO_DATASET" --calc-vocab
+  $COMMAND -p "$PATH_TO_TEST_DATASET" --calc-vocab
+
+  RES=$(print_latest_calculated_vocab)
+  echo "$OPTION_NUMBER,$DESC,$RES" >> $RESULT_FILE
+
+  print_run_result "$RES"
+  echo ""
+  echo ""
+}
+
+#################  Printing
 
 print_latest_calculated_vocab () {
     VOCAB_DIR_TEST="$PATH_TO_VOCABS/$(ls -1t $PATH_TO_VOCABS | head -1)"
@@ -57,111 +95,91 @@ print_latest_calculated_vocab () {
     OOV5=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 50000 "$VOCAB_SIZE")
     OOV6=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 25000 "$VOCAB_SIZE")
 
-    OOVs="$OOV1/$OOV2/$OOV3/$OOV4/$OOV5/$OOV6"
+    OOVs="$OOV1,$OOV2,$OOV3,$OOV4,$OOV5,$OOV6"
 
-    FREQS="$F1/$F2/$F3/$F4/$F5"
+    FREQS="$F1,$F2,$F3,$F4,$F5"
 
-    echo -e "$1\t$VOCAB_SIZE\t$CORPUS_SIZE\t$OOVs\t$FREQS"
+    echo -e "$VOCAB_SIZE,$CORPUS_SIZE,$OOVs,$FREQS"
 }
 
-FULL_STRING=""
-
-format_res () {
-    echo -e "$1" | awk -F'\t' '{print "\n"$1"   Vocab size: "$2"              Corpus size: "$3"           OOV: "$4"     Freqs: "$5}'
+print_run_result () {
+    echo -e "$1" | awk -F',' -v desc="$DESC_PREFIX $VOCAB_DESC: " '{print desc$1}'
+    echo -e "$1" | awk -F',' -v desc="$DESC_PREFIX $CORPUS_SIZE_DESC: " '{print desc$2}'
+    echo -e "$1" | awk -F',' -v desc="$DESC_PREFIX $OOV_DESC: " '{print desc$3"/"$4"/"$5"/"$6"/"$7"/"$8}'
+    echo -e "$1" | awk -F',' -v desc="$DESC_PREFIX $FREQS_DESC: " '{print desc$9"/"$10"/"$11"/"$12"/"$13}'
 }
 
-echo "Vocabulary study: evaluating different vocabulary choices"
+print_modeling_choices_header() {
+  echo -e "Option\tExample\n------\t---------" | awk -F '\t' '{ printf("%-90s      %-5s\n", $1, $2) }'
+}
+
+print_modeling_choices() {
+  local _options="$1"
+  local _example="$2"
+
+  print_modeling_choices_header "$_example"
+  _commands=$(echo -e "$_options" | awk -F';' '{print $3}')
+  _split_examples=$(echo -e "$_commands" | xargs -I{} bash -c "if ! [ '-' == \"{}\" ]; then {} \"$_example\"; else echo ''; fi")
+  paste <(echo -e "$_options" | awk -F';' '{print $1" "$2}') <(echo "$_split_examples") | awk -F '\t' '{ printf("%-90s      %-5s\n", $1, $2) }'
+}
+
+print_metrics() {
+  echo "Metrics used for evaluation:"
+  echo "$DESC_PREFIX $VOCAB_DESC:"
+  echo "-------- the number of unique tokens across the pre-processed corpus"
+  echo ""
+  echo "$DESC_PREFIX $CORPUS_SIZE_DESC:"
+  echo "-------- the total number of tokens in the pre-processed corpus"
+  echo ""
+  echo "$DESC_PREFIX $OOV_DESC:"
+  echo "-------- the percentage of unique tokens that are found in the test set but are not present in the training set vocabulary"
+  echo "-------- (in the whole training set vocabulary/top 200k frequent tokens/top 100k/top 75k/top 50k/top 25k)"
+  echo ""
+  echo "$DESC_PREFIX $FREQS_DESC:"
+  echo "-------- the percentage of tokens that occur (>1000/101-1000/11-100/2-10/1) times in the coprus"
+  echo ""
+}
+
+print_intro() {
+  echo -e "\n\n\n"
+  echo "This is a script for evaluation of different vocabulary modeling choices."
+  echo "For each modeling choice, the input corpus is pre-processed accordingly and then multiple metrics ard calculated on the pre-processed corpus."
+  echo ""
+  echo "The vocabulary modeling choices we evaluate are:"
+  echo ""
+  echo "*********************************************************************************************************************************************************"
+  print_modeling_choices "$1" "$2"
+  echo "*********************************************************************************************************************************************************"
+  echo ""
+  print_metrics
+  echo "*********************************************************************************************************************************************************"
+  echo ""
+  echo ""
+}
+
+print_final_stats() {
+  echo -e "================>     Printing final stats\n"
+  header="Pre-processing option,$VOCAB_DESC,$CORPUS_SIZE_DESC,$OOV_SHORT_DESC,$FREQS_DESC\n"
+  sep="------,----,----,----,----\n"
+  res="$(cat "$RESULT_FILE" | awk -F',' -v OFS=',' '{print $1" "$2, $3, $4, $5"/"$6"/"$7"/"$8"/"$9"/"$10, $11"/"$12"/"$13"/"$14"/"$15}')"
+  res="$header$sep$res"
+  echo -e "$res" | awk -F',' -v OFS='\t' '{printf("%-85s  %-12s  %-12s  %-35s  %s\n", $1, $2, $3, $4, $5)}'
+  echo ""
+  echo "The results are saved to $RESULT_FILE"
+}
+
+###########  Main flow
+
+_options="$(<"$SCRIPTPATH/options.txt")"
+_example="$(cat "$EXAMPLE_FILE")"
+print_intro "$_options" "$_example"
 
 echo ""
-echo "=====  No splitting  ====="
-echo ""
+echo "===============>     Running pre-processing and calculating the stats ... "
 
-codeprep nosplit -p "$PATH_TO_DATASET" --calc-vocab
-codeprep nosplit -p "$PATH_TO_TEST_DATASET" --calc-vocab
-RES=$(print_latest_calculated_vocab "Full                              ")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"
+echo -n > $RESULT_FILE
+echo -e "$_options" | while IFS=$'\n' read -r option; do
+    run_option "$option"
+done
 
-codeprep nosplit -p "$PATH_TO_DATASET" --calc-vocab --no-unicode
-codeprep nosplit -p "$PATH_TO_TEST_DATASET" --calc-vocab --no-unicode
-RES=$(print_latest_calculated_vocab "No unicode                        ")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"
-
-codeprep nosplit -p "$PATH_TO_DATASET" --calc-vocab --no-unicode --no-spaces
-codeprep nosplit -p "$PATH_TO_TEST_DATASET" --calc-vocab --no-unicode --no-spaces
-RES=$(print_latest_calculated_vocab "+  No whitespace                  ")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"2
-
-codeprep nosplit -p "$PATH_TO_DATASET" --calc-vocab --no-unicode --no-spaces --no-com
-codeprep nosplit -p "$PATH_TO_TEST_DATASET" --calc-vocab --no-unicode --no-spaces --no-com
-RES=$(print_latest_calculated_vocab "+  +  no comments                 ")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"
-
-codeprep nosplit -p "$PATH_TO_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --no-str
-codeprep nosplit -p "$PATH_TO_TEST_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --no-str
-RES=$(print_latest_calculated_vocab "+  +  +  no strings               ")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"
-
-codeprep nosplit -p "$PATH_TO_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14
-codeprep nosplit -p "$PATH_TO_TEST_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14
-RES=$(print_latest_calculated_vocab "+  +  +  H&D string               ")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"
-
-echo ""
-echo "====== Word Splitting  ========"
-echo ""
-
-codeprep basic -p "$PATH_TO_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14
-codeprep basic -p "$PATH_TO_TEST_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14
-RES=$(print_latest_calculated_vocab "Convention splitting              ")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"
-
-codeprep basic -p "$PATH_TO_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14 --no-case
-codeprep basic -p "$PATH_TO_TEST_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14 --no-case
-RES=$(print_latest_calculated_vocab "Convension splitting + no case    ")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"
-
-echo ""
-echo "====== Subword plitting ======="
-echo ""
-
-codeprep basic -p "$PATH_TO_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14 --split-numbers
-codeprep basic -p "$PATH_TO_TEST_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14 --split-numbers
-RES=$(print_latest_calculated_vocab "Convention splitting + numbers    ")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"
-
-codeprep basic -p "$PATH_TO_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14 --split-numbers --ronin
-codeprep basic -p "$PATH_TO_TEST_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14 --split-numbers --ronin
-RES=$(print_latest_calculated_vocab "Convention splitting + + ronin    ")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"
-
-codeprep basic -p "$PATH_TO_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14 --split-numbers --ronin --stem
-codeprep basic -p "$PATH_TO_TEST_DATASET" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14 --split-numbers --ronin --stem
-RES=$(print_latest_calculated_vocab "Convention splitting + + + stemming")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"
-
-echo ""
-echo "======  BPE ============"
-echo ""
-
-codeprep bpe -p "$PATH_TO_DATASET" "1k" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14
-codeprep bpe -p "$PATH_TO_TEST_DATASET" "1k" --calc-vocab --no-unicode --no-spaces --no-com --max-str-length=14
-RES=$(print_latest_calculated_vocab "BPE 1K                             ")
-FULL_STRING="$FULL_STRING\n$RES"
-format_res "$RES"
-
-echo ""
-echo ""
-echo ""
-echo "Pre-processing option:         Vocab size:  Corpus size:   OOV:         Freq:    "
-echo -e "$FULL_STRING"
+print_final_stats
