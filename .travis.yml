@@ -4,11 +4,11 @@ services:
 
 before_install:
   - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-  - docker build . -t hlib/open-vocab-code-nlm
-  - docker push hlib/open-vocab-code-nlm
+  - docker build . -t hlib/open-vocab-code-nlm:v2
+  - docker push hlib/open-vocab-code-nlm:v2
   - docker rmi $(docker images -q)
 install:
-  - docker pull hlib/open-vocab-code-nlm
+  - docker pull hlib/open-vocab-code-nlm:v2
 script:
   - docker run -it hlib/open-vocab-code-nlm "scripts/vocab_study.sh"
   - docker run -it hlib/open-vocab-code-nlm "scripts/nlm.sh"
