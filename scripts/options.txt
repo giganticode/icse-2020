@@ -11,6 +11,6 @@
 ;;-
 3.0;Split by conventions + NUMBERS;codeprep basic --no-unicode --no-spaces --no-com --max-str-length=14 --split-numbers
 3.1;Split by conventions + numbers + RONIN;codeprep basic --no-unicode --no-spaces --no-com --max-str-length=14 --split-numbers --ronin
-3.2;Split by conventions + numbers + romin + STEMMING;codeprep basic --no-unicode --no-spaces --no-com --max-str-length=14 --split-numbers --ronin --stem
+3.2;Split by conventions + numbers + ronin + STEMMING;codeprep basic --no-unicode --no-spaces --no-com --max-str-length=14 --split-numbers --ronin --stem
 ;;-
 4.0;BPE 1K;codeprep bpe 1k --no-unicode --no-spaces --no-com --max-str-length=14
