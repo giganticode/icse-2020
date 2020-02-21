@@ -184,3 +184,5 @@ echo -e "$_options" | while IFS=$'\n' read -r option; do
 done
 
 print_final_stats
+
+rm -r "$PATH_TO_VOCABS"
