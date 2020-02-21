@@ -44,10 +44,10 @@ rel_oov() {
   local _vocab_file="$1"
   local _vocab_file_test="$2"
   local _limit="$3"
-  local _total_vocab="$4"
+  local _total_test_vocab="$4"
 
-  oov_abs=$(echo "$(comm -13 <(cat "$_vocab_file" | head -$_limit | awk '{print $2}' | sort) <(cat "$_vocab_file_test" | awk '{print $2}' | sort)))" | wc -l)
-  echo "scale=2; 100 * $oov_abs / $_total_vocab" | bc
+  oov_abs=$(echo "$(comm -13 <(cat "$_vocab_file" | head -$_limit | awk '{print $1}' | sort) <(cat "$_vocab_file_test" | awk '{print $1}' | sort)))" | wc -l)
+  echo "scale=2; 100 * $oov_abs / $_total_test_vocab" | bc
 }
 
 run_option() {
@@ -75,6 +75,7 @@ run_option() {
 print_latest_calculated_vocab () {
     VOCAB_DIR_TEST="$PATH_TO_VOCABS/$(ls -1t $PATH_TO_VOCABS | head -1)"
     VOCAB_FILE_TEST="$VOCAB_DIR_TEST/vocab"
+    VOCAB_SIZE_TEST=$(cat "$VOCAB_DIR_TEST/vocabsize" | head -1)
 
     VOCAB_DIR="$PATH_TO_VOCABS/$(ls -1t $PATH_TO_VOCABS | head -2 | tail -1)"
     VOCAB_FILE="$VOCAB_DIR/vocab"
@@ -88,12 +89,12 @@ print_latest_calculated_vocab () {
     F4=$(rel_freq "$VOCAB_FILE" "^\([2-9]\|10\)$" "$VOCAB_SIZE")
     F5=$(rel_freq "$VOCAB_FILE" "^1$" "$VOCAB_SIZE")
 
-    OOV1=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 1000000000 "$VOCAB_SIZE")
-    OOV2=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 200000 "$VOCAB_SIZE")
-    OOV3=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 100000 "$VOCAB_SIZE")
-    OOV4=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 75000 "$VOCAB_SIZE")
-    OOV5=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 50000 "$VOCAB_SIZE")
-    OOV6=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 25000 "$VOCAB_SIZE")
+    OOV1=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 1000000000 "$VOCAB_SIZE_TEST")
+    OOV2=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 200000 "$VOCAB_SIZE_TEST")
+    OOV3=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 100000 "$VOCAB_SIZE_TEST")
+    OOV4=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 75000 "$VOCAB_SIZE_TEST")
+    OOV5=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 50000 "$VOCAB_SIZE_TEST")
+    OOV6=$(rel_oov "$VOCAB_FILE" "$VOCAB_FILE_TEST" 25000 "$VOCAB_SIZE_TEST")
 
     OOVs="$OOV1,$OOV2,$OOV3,$OOV4,$OOV5,$OOV6"
 
