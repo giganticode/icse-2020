@@ -13,7 +13,7 @@
 ## Code used to run experiments
 
 Codeprep library (for vocabulary study):
-https://github.com/giganaticode/codeprep
+https://github.com/giganticode/codeprep
 
 Open-vocabulary Neural LM:
 https://github.com/mast-group/OpenVocabCodeNLM
