@@ -10,6 +10,14 @@
 | Python, pre-processed  | https://doi.org/10.5281/zenodo.3628636 |
 | Trained models         | https://doi.org/10.5281/zenodo.3628628 |
 
+## Code used to run experiments
+
+Codeprep library (for vocabulary study):
+https://github.com/giganaticode/codeprep
+
+Open-vocabulary Neural LM:
+https://github.com/mast-group/OpenVocabCodeNLM
+
 ## Paper
 
 If you jse the artifacts, please cite the paper:
