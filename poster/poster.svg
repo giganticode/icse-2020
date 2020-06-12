@@ -2303,7 +2303,7 @@
     <rect
        id="rect6398-0-1"
        height="21.080776"
-       width="58.024014"
+       width="66.494671"
        y="760.4455"
        x="83.843857" />
     <rect
@@ -2362,8 +2362,8 @@
      inkscape:document-rotation="0"
      inkscape:current-layer="layer1"
      inkscape:document-units="mm"
-     inkscape:cy="3626.6792"
-     inkscape:cx="1540.0033"
+     inkscape:cy="3442.4787"
+     inkscape:cx="1688.5447"
      inkscape:zoom="0.3775"
      inkscape:pageshadow="2"
      inkscape:pageopacity="1"
@@ -2839,13 +2839,13 @@
          y="-138.90625"><tspan
            style="font-size:222.25px;writing-mode:tb-rl;fill:#ffffff">}</tspan></tspan></text>
     <text
-       transform="matrix(21.068861,0,0,1.7943103,-5311.2004,-333.96226)"
+       transform="matrix(21.068861,0,0,1.7943103,-5266.2331,-331.73119)"
        id="text2061"
        y="349.35376"
        x="277.12424"
        style="font-style:normal;font-weight:normal;font-size:25.9261px;line-height:1.25;font-family:sans-serif;writing-mode:tb-rl;white-space:pre;inline-size:0;fill:#e6e6e6;fill-opacity:1;stroke:none;stroke-width:0.264583"
        xml:space="preserve"><tspan
-         style="font-size:25.9261px;writing-mode:tb-rl;fill:#fffcf2;stroke-width:0.264583"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.9261px;font-family:'Ubuntu Mono';-inkscape-font-specification:'Ubuntu Mono';writing-mode:tb-rl;fill:#fffcf2;stroke-width:0.264583"
          y="349.35376"
          x="277.12424"
          id="tspan2059">{</tspan></text>
