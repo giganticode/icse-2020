@@ -2362,8 +2362,8 @@
      inkscape:document-rotation="0"
      inkscape:current-layer="layer1"
      inkscape:document-units="mm"
-     inkscape:cy="3442.4787"
-     inkscape:cx="1688.5447"
+     inkscape:cy="3805.3202"
+     inkscape:cx="1281.8387"
      inkscape:zoom="0.3775"
      inkscape:pageshadow="2"
      inkscape:pageopacity="1"
@@ -3011,7 +3011,7 @@
        id="rect872"
        class="rect2" />
     <text
-       transform="translate(-29.342874,1066.9047)"
+       transform="translate(18.133586,1066.7853)"
        class="text1"
        xml:space="preserve"
        id="text1087-2"
@@ -3020,10 +3020,10 @@
          y="74.96626"><tspan
            style="shape-inside:url(#rect1089-6)">References</tspan></tspan></text>
     <text
-       transform="translate(-1.2968388,27.158933)"
+       transform="translate(46.179621,27.039495)"
        xml:space="preserve"
        id="text298"
-       style="font-style:normal;font-weight:normal;font-size:7.05556px;line-height:1.25;font-family:sans-serif;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;shape-inside:url(#rect300);"><tspan
+       style="font-style:normal;font-weight:normal;font-size:7.05556px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect300);fill:#000000;fill-opacity:1;stroke:none;"><tspan
          x="14.671875"
          y="1127.8514"><tspan
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Helvetica;-inkscape-font-specification:Helvetica;fill:#fffcf2">[1] Hellendoorn, Vincent J., and Premkumar Devanbu. &quot;Are deep neural networks the best choice for modeling source code?.&quot; Proceedings of the 2017 11th Joint Meeting on Foundations of Software Engineering. 2017.
