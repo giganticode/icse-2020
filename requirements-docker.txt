@@ -1,3 +1,3 @@
 numpy==1.16.6 
 pygtrie==2.3.2
-tensorflow==1.10.1
+tensorflow==1.15.4
